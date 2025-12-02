@@ -1,0 +1,1215 @@
+﻿{
+    "name":  "Project_Saaga_Complete_Demo",
+    "note":  "All API keys and credentials removed for demo purposes. Replace placeholders with actual credentials.",
+    "workflows":  [
+                      {
+                          "description":  "Automated news script generation",
+                          "name":  "WF1_Script_Factory",
+                          "connections":  {
+                                              "Schedule Trigger":  {
+                                                                       "main":  [
+                                                                                    [
+                                                                                        {
+                                                                                            "node":  "Fetch Google News",
+                                                                                            "type":  "main",
+                                                                                            "index":  0
+                                                                                        }
+                                                                                    ]
+                                                                                ]
+                                                                   },
+                                              "Fetch Google News":  {
+                                                                        "main":  [
+                                                                                     [
+                                                                                         {
+                                                                                             "node":  "XML to JSON",
+                                                                                             "type":  "main",
+                                                                                             "index":  0
+                                                                                         }
+                                                                                     ]
+                                                                                 ]
+                                                                    },
+                                              "XML to JSON":  {
+                                                                  "main":  [
+                                                                               [
+                                                                                   {
+                                                                                       "node":  "Split Items",
+                                                                                       "type":  "main",
+                                                                                       "index":  0
+                                                                                   }
+                                                                               ]
+                                                                           ]
+                                                              },
+                                              "Split Items":  {
+                                                                  "main":  [
+                                                                               [
+                                                                                   {
+                                                                                       "node":  "Limit to 25",
+                                                                                       "type":  "main",
+                                                                                       "index":  0
+                                                                                   }
+                                                                               ]
+                                                                           ]
+                                                              },
+                                              "Limit to 25":  {
+                                                                  "main":  [
+                                                                               [
+                                                                                   {
+                                                                                       "node":  "Filter Relevance",
+                                                                                       "type":  "main",
+                                                                                       "index":  0
+                                                                                   }
+                                                                               ]
+                                                                           ]
+                                                              },
+                                              "Filter Relevance":  {
+                                                                       "main":  [
+                                                                                    [
+                                                                                        {
+                                                                                            "node":  "OpenAI Summary (Code)",
+                                                                                            "type":  "main",
+                                                                                            "index":  0
+                                                                                        }
+                                                                                    ]
+                                                                                ]
+                                                                   },
+                                              "OpenAI Summary (Code)":  {
+                                                                            "main":  [
+                                                                                         [
+                                                                                             {
+                                                                                                 "node":  "Save to Sheets",
+                                                                                                 "type":  "main",
+                                                                                                 "index":  0
+                                                                                             }
+                                                                                         ]
+                                                                                     ]
+                                                                        }
+                                          },
+                          "nodes":  [
+                                        {
+                                            "parameters":  {
+                                                               "rule":  {
+                                                                            "interval":  [
+                                                                                             {
+                                                                                                 "field":  "cronExpression",
+                                                                                                 "expression":  "0 10 * * *"
+                                                                                             }
+                                                                                         ]
+                                                                        }
+                                                           },
+                                            "name":  "Schedule Trigger",
+                                            "type":  "n8n-nodes-base.scheduleTrigger",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             250,
+                                                             300
+                                                         ],
+                                            "id":  "schedule-trigger"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "url":  "https://news.google.com/rss/search?q=(%22artificial%20intelligence%22%20OR%20AI)%20AND%20(women%20OR%20woman%20OR%20female%20OR%20gender%20OR%20feminist%20OR%20feminism)%20AND%20(bias%20OR%20discrimination%20OR%20sexism%20OR%20harassment%20OR%20inequality%20OR%20%22pay%20gap%22)\u0026hl=en-US\u0026gl=US\u0026ceid=US:en",
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Fetch Google News",
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  3,
+                                            "position":  [
+                                                             450,
+                                                             300
+                                                         ],
+                                            "id":  "fetch-news"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "XML to JSON",
+                                            "type":  "n8n-nodes-base.xml",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             650,
+                                                             300
+                                                         ],
+                                            "id":  "xml-to-json"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "fieldToSplitOut":  "rss.channel.item",
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Split Items",
+                                            "type":  "n8n-nodes-base.itemLists",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             850,
+                                                             300
+                                                         ],
+                                            "id":  "split-items"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "maxItems":  25
+                                                           },
+                                            "name":  "Limit to 25",
+                                            "type":  "n8n-nodes-base.limit",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             950,
+                                                             300
+                                                         ],
+                                            "id":  "limit-items"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "conditions":  {
+                                                                                  "string":  [
+                                                                                                 {
+                                                                                                     "value1":  "={{ $json.title }}",
+                                                                                                     "operation":  "contains",
+                                                                                                     "value2":  "women"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "value1":  "={{ $json.title }}",
+                                                                                                     "operation":  "contains",
+                                                                                                     "value2":  "bias"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "value1":  "={{ $json.title }}",
+                                                                                                     "operation":  "contains",
+                                                                                                     "value2":  "discrimination"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "value1":  "={{ $json.title }}",
+                                                                                                     "operation":  "contains",
+                                                                                                     "value2":  "gender"
+                                                                                                 }
+                                                                                             ]
+                                                                              },
+                                                               "combineOperation":  "any"
+                                                           },
+                                            "name":  "Filter Relevance",
+                                            "type":  "n8n-nodes-base.if",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             1050,
+                                                             300
+                                                         ],
+                                            "id":  "filter-relevance"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "jsCode":  "// Process each item\nfor (const item of $input.all()) {\n  const title = item.json.title || \"No Title\";\n  const link = item.json.link || \"No Link\";\n  const pubDate = item.json.pubDate || new Date().toISOString();\n  \n  let source = \"Google News\";\n  if (item.json.source \u0026\u0026 typeof item.json.source === \u0027object\u0027 \u0026\u0026 item.json.source._) {\n    source = item.json.source._;\n  } else if (typeof item.json.source === \u0027string\u0027) {\n    source = item.json.source;\n  }\n\n  // Prompt 1: Summary (bullet points)\n  const summaryPrompt = `Olet uutistoimittaja, joka tiivistÃ¤Ã¤ englanninkielisiÃ¤ uutisia suomeksi Project Saagaa varten.\\n\\nTiivistÃ¤ alla oleva uutinen suomeksi 3â€“4 bullet pointtiin.\\n\\nKerro:\\n- MikÃ¤ ongelma, epÃ¤kohta tai teema uutisessa on?\\n- Miten se liittyy naisiin, sukupuolten tasa-arvoon tai sukupuolivinoumaan tekoÃ¤lyssÃ¤?\\n- MikÃ¤ on tÃ¤rkein pointti, josta haluaisit kuulla 1 minuutin selityksen?\\n\\nÃ„lÃ¤ keksi faktoja, pysy vain tekstissÃ¤.\\n\\nUutinen:\\nTitle: ${title}\\nLink: ${link}`;\n\n  // Prompt 2: Script (full sentences for Saaga to speak)\n  const scriptPrompt = `Kirjoita 1 minuutin puhe Saagan Ã¤Ã¤nellÃ¤ (sinÃ¤-muoto, suomeksi, kohderyhmÃ¤ nuoret aikuiset). Saaga on feministi AI-kommentaattori.\\n\\nSÃ¤vy: feminiininen, Ã¤lykÃ¤s, suora, vÃ¤hÃ¤n kapinallinen, muttei saarnaava.\\n\\nRakenne:\\n- Koukku (1-2 lausetta)\\n- Ydinpointit (3-4 selkeÃ¤sti)\\n- Loppuun call-to-action (jos haluat lisÃ¤Ã¤, tilaa kanava, me hÃ¤iritÃ¤Ã¤n yhdessÃ¤)\\n\\nÃ„lÃ¤ selitÃ¤ mitÃ¤ video nÃ¤yttÃ¤Ã¤, kirjoita vain puhuttava teksti.\\n\\nUutinen:\\nTitle: ${title}\\nLink: ${link}`;\n\n  // Image generation prompt (static template)\n  const imagePromptTemplate = `A 9:16 portrait of Saaga, a Finnish feminist AI commentator, in a setting and outfit that matches the theme of: ${title}. The environment and clothing should reflect the topic\u0027s context and mood. Cinematic lighting, professional photography, high quality.`;\n\n  let summary = \"Pending\";\n  let script = \"Pending\";\n  let imagePrompt = imagePromptTemplate;\n  let status = \"NEW\";\n\n  try {\n    // Call 1: Get summary\n    try {\n      const summaryResponse = await this.helpers.httpRequest({\n        method: \u0027POST\u0027,\n        url: \u0027https://api.openai.com/v1/chat/completions\u0027,\n        headers: {\n          \u0027Authorization\u0027: \u0027Bearer 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\u0027,\n          \u0027Content-Type\u0027: \u0027application/json\u0027\n        },\n        body: {\n          model: \"gpt-3.5-turbo\",\n          messages: [{ role: \"user\", content: summaryPrompt }],\n          temperature: 0.7\n        },\n        json: true\n      });\n      \n      if (summaryResponse \u0026\u0026 summaryResponse.choices \u0026\u0026 summaryResponse.choices[0]) {\n        summary = summaryResponse.choices[0].message.content;\n      } else {\n        summary = \"API Error: Invalid response structure\";\n        status = \"ERROR\";\n      }\n    } catch (err) {\n      summary = \"API Error: \" + (err.message || String(err));\n      status = \"ERROR\";\n    }\n\n    // Call 2: Get script (only if summary succeeded)\n    if (status !== \"ERROR\") {\n      try {\n        const scriptResponse = await this.helpers.httpRequest({\n          method: \u0027POST\u0027,\n          url: \u0027https://api.openai.com/v1/chat/completions\u0027,\n          headers: {\n            \u0027Authorization\u0027: \u0027Bearer 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\u0027,\n            \u0027Content-Type\u0027: \u0027application/json\u0027\n          },\n          body: {\n            model: \"gpt-3.5-turbo\",\n            messages: [{ role: \"user\", content: scriptPrompt }],\n            temperature: 0.8\n          },\n          json: true\n        });\n        \n        if (scriptResponse \u0026\u0026 scriptResponse.choices \u0026\u0026 scriptResponse.choices[0]) {\n          script = scriptResponse.choices[0].message.content;\n        } else {\n          script = \"API Error: Invalid response structure\";\n          status = \"ERROR\";\n        }\n      } catch (err) {\n        script = \"API Error: \" + (err.message || String(err));\n        status = \"ERROR\";\n      }\n    } else {\n      script = \"Skipped due to summary error\";\n    }\n\n  } catch (error) {\n    summary = \"Unexpected Error: \" + (error.message || String(error));\n    script = \"Unexpected Error: \" + (error.message || String(error));\n    status = \"ERROR\";\n  }\n\n  // Set the output directly on item.json\n  item.json = {\n    id: Math.random().toString(36).substring(7),\n    date: pubDate,\n    source: source,\n    source_title: title,\n    source_url: link,\n    summary: summary,\n    script: script,\n    image_prompt: imagePrompt,\n    status: status\n  };\n}\n\nreturn $input.all();"
+                                                           },
+                                            "name":  "OpenAI Summary (Code)",
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             1250,
+                                                             300
+                                                         ],
+                                            "id":  "openai-summary"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "operation":  "append",
+                                                               "documentId":  {
+                                                                                  "__rl":  true,
+                                                                                  "value":  "1M1rAqnnCbAFXqTJtn_sg_iTI5ovlKb_j6Puz1ASv3bg",
+                                                                                  "mode":  "id"
+                                                                              },
+                                                               "sheetName":  {
+                                                                                 "__rl":  true,
+                                                                                 "value":  "Taulukko1",
+                                                                                 "mode":  "name"
+                                                                             },
+                                                               "columns":  {
+                                                                               "mappingMode":  "autoMapInputData",
+                                                                               "matchingColumns":  [
+
+                                                                                                   ]
+                                                                           },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Save to Sheets",
+                                            "type":  "n8n-nodes-base.googleSheets",
+                                            "typeVersion":  4.4,
+                                            "position":  [
+                                                             1450,
+                                                             300
+                                                         ],
+                                            "credentials":  {
+                                                                "googleSheetsOAuth2Api":  {
+                                                                                              "id":  "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+                                                                                              "name":  "Google Sheets account"
+                                                                                          }
+                                                            },
+                                            "id":  "save-to-sheets"
+                                        }
+                                    ]
+                      },
+                      {
+                          "description":  "Manual video generation with AI lip-sync",
+                          "name":  "WF2_Video_Generator",
+                          "connections":  {
+                                              "Manual Trigger":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Set News ID",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                                              "Set News ID":  {
+                                                                  "main":  [
+                                                                               [
+                                                                                   {
+                                                                                       "node":  "Get Script Data",
+                                                                                       "type":  "main",
+                                                                                       "index":  0
+                                                                                   }
+                                                                               ]
+                                                                           ]
+                                                              },
+                                              "Debug Binary":  {
+                                                                   "main":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "Upload Audio to Drive",
+                                                                                        "type":  "main",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                                              "Upload Audio to Drive":  {
+                                                                            "main":  [
+                                                                                         [
+                                                                                             {
+                                                                                                 "node":  "Set API Data",
+                                                                                                 "type":  "main",
+                                                                                                 "index":  0
+                                                                                             }
+                                                                                         ]
+                                                                                     ]
+                                                                        },
+                                              "Set API Data":  {
+                                                                   "main":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "Generate Video (Fal.ai)",
+                                                                                        "type":  "main",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                                              "Set Prompt":  {
+                                                                 "main":  [
+                                                                              [
+                                                                                  {
+                                                                                      "node":  "Generate Video (Fal.ai)",
+                                                                                      "type":  "main",
+                                                                                      "index":  0
+                                                                                  }
+                                                                              ]
+                                                                          ]
+                                                             },
+                                              "Generate Video (Fal.ai)":  {
+                                                                              "main":  [
+                                                                                           [
+                                                                                               {
+                                                                                                   "node":  "Wait 60s",
+                                                                                                   "type":  "main",
+                                                                                                   "index":  0
+                                                                                               }
+                                                                                           ]
+                                                                                       ]
+                                                                          },
+                                              "Wait 60s":  {
+                                                               "main":  [
+                                                                            [
+                                                                                {
+                                                                                    "node":  "Check Status",
+                                                                                    "type":  "main",
+                                                                                    "index":  0
+                                                                                }
+                                                                            ]
+                                                                        ]
+                                                           },
+                                              "Check Status":  {
+                                                                   "main":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "Is Completed?",
+                                                                                        "type":  "main",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                                              "Is Completed?":  {
+                                                                    "main":  [
+                                                                                 [
+                                                                                     {
+                                                                                         "node":  "Set Request ID",
+                                                                                         "type":  "main",
+                                                                                         "index":  0
+                                                                                     }
+                                                                                 ],
+                                                                                 [
+                                                                                     {
+                                                                                         "node":  "Wait 60s",
+                                                                                         "type":  "main",
+                                                                                         "index":  0
+                                                                                     }
+                                                                                 ]
+                                                                             ]
+                                                                },
+                                              "Set Request ID":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Get Result URL",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                                              "Get Result URL":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Download Video",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                                              "Download Video":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Save to Preview (Manual)",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                                              "Save to Preview (Manual)":  {
+                                                                               "main":  [
+                                                                                            [
+                                                                                                {
+                                                                                                    "node":  "Update Sheet Status",
+                                                                                                    "type":  "main",
+                                                                                                    "index":  0
+                                                                                                }
+                                                                                            ]
+                                                                                        ]
+                                                                           },
+                                              "Get Script Data":  {
+                                                                      "main":  [
+                                                                                   [
+                                                                                       {
+                                                                                           "node":  "Generate audio",
+                                                                                           "type":  "main",
+                                                                                           "index":  0
+                                                                                       }
+                                                                                   ]
+                                                                               ]
+                                                                  },
+                                              "Generate audio":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Debug Binary",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 }
+                                          },
+                          "nodes":  [
+                                        {
+                                            "parameters":  {
+                                                               "content":  "## Google Drive Credentials\n\nUse these when creating the **Google Drive OAuth2 API** credential:\n\n**Client ID:**\n`1054208730190-k0oq3cnelmq0tprad3c56njaaq2l6ial.apps.googleusercontent.com`\n\n**Client Secret:**\n`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`",
+                                                               "height":  300,
+                                                               "width":  400,
+                                                               "color":  4
+                                                           },
+                                            "name":  "Credentials Note",
+                                            "type":  "n8n-nodes-base.stickyNote",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             -1888,
+                                                             -128
+                                                         ],
+                                            "id":  "4dce4328-b2e5-4323-9331-70d4c2cd18f2"
+                                        },
+                                        {
+                                            "parameters":  {
+
+                                                           },
+                                            "name":  "Manual Trigger",
+                                            "type":  "n8n-nodes-base.manualTrigger",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             -1888,
+                                                             80
+                                                         ],
+                                            "id":  "dd4af33c-f116-489d-a41a-58ee46a73d31"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "assignments":  {
+                                                                                   "assignments":  [
+                                                                                                       {
+                                                                                                           "id":  "news_id",
+                                                                                                           "name":  "news_id",
+                                                                                                           "value":  "t2tj9j",
+                                                                                                           "type":  "string"
+                                                                                                       }
+                                                                                                   ]
+                                                                               },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Set News ID",
+                                            "type":  "n8n-nodes-base.set",
+                                            "typeVersion":  3.4,
+                                            "position":  [
+                                                             -1696,
+                                                             80
+                                                         ],
+                                            "id":  "2ff60094-847f-455a-a4a6-5920212116c3"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "documentId":  {
+                                                                                  "__rl":  true,
+                                                                                  "value":  "1M1rAqnnCbAFXqTJtn_sg_iTI5ovlKb_j6Puz1ASv3bg",
+                                                                                  "mode":  "id"
+                                                                              },
+                                                               "sheetName":  {
+                                                                                 "__rl":  true,
+                                                                                 "value":  "Taulukko1",
+                                                                                 "mode":  "name"
+                                                                             },
+                                                               "filtersUI":  {
+                                                                                 "values":  [
+                                                                                                {
+                                                                                                    "lookupColumn":  "id",
+                                                                                                    "lookupValue":  "={{ $(\u0027Set News ID\u0027).item.json.news_id }}"
+                                                                                                }
+                                                                                            ]
+                                                                             },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Get Script Data",
+                                            "type":  "n8n-nodes-base.googleSheets",
+                                            "typeVersion":  4.4,
+                                            "position":  [
+                                                             -1488,
+                                                             80
+                                                         ],
+                                            "id":  "d8f88f6f-d834-4e49-8158-f9b47f9ed9c2",
+                                            "credentials":  {
+                                                                "googleSheetsOAuth2Api":  {
+                                                                                              "id":  "QJXwI5hj92mcZ333",
+                                                                                              "name":  "Google Sheets account 3"
+                                                                                          }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "jsCode":  "// Debugging Binary Data\nconst item = $input.item;\n\nif (!item.binary) {\n  throw new Error(\u0027No binary data found in previous node output!\u0027);\n}\n\nconst binaryKeys = Object.keys(item.binary);\nif (binaryKeys.length === 0) {\n  throw new Error(\u0027Binary object is empty!\u0027);\n}\n\n// If data is in \u0027data\u0027, good. If not, move the first binary key to \u0027data\u0027\nif (!item.binary.data) {\n  const firstKey = binaryKeys[0];\n  item.binary.data = item.binary[firstKey];\n}\n\nreturn item;"
+                                                           },
+                                            "name":  "Debug Binary",
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             -1216,
+                                                             112
+                                                         ],
+                                            "id":  "bde24c86-fe77-49d3-b69d-02d47058243c"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "fileContent":  "data",
+                                                               "name":  "={{ $(\u0027Get Script Data\u0027).item.json.id }}_audio.mp3",
+                                                               "driveId":  {
+                                                                               "__rl":  true,
+                                                                               "mode":  "list",
+                                                                               "value":  "My Drive"
+                                                                           },
+                                                               "folderId":  {
+                                                                                "__rl":  true,
+                                                                                "value":  "1ZZa6zVWk3AyF3zv68LBrFzI_WmdySXq0",
+                                                                                "mode":  "id"
+                                                                            },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Upload Audio to Drive",
+                                            "type":  "n8n-nodes-base.googleDrive",
+                                            "typeVersion":  3,
+                                            "position":  [
+                                                             -1088,
+                                                             80
+                                                         ],
+                                            "id":  "75e39f0b-72aa-4efe-8ce7-9273a2dff88b",
+                                            "credentials":  {
+                                                                "googleDriveOAuth2Api":  {
+                                                                                             "id":  "MO6SJL3nGr2tqVps",
+                                                                                             "name":  "Google Drive account 2"
+                                                                                         }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "assignments":  {
+                                                                                   "assignments":  [
+                                                                                                       {
+                                                                                                           "id":  "prompt",
+                                                                                                           "name":  "prompt",
+                                                                                                           "value":  "={{ $(\u0027Get Script Data\u0027).first().json.image_prompt || \u0027A female news anchor looking at the camera, professional studio lighting\u0027 }}",
+                                                                                                           "type":  "string"
+                                                                                                       }
+                                                                                                   ]
+                                                                               },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Set Prompt",
+                                            "type":  "n8n-nodes-base.set",
+                                            "typeVersion":  3.4,
+                                            "position":  [
+                                                             -896,
+                                                             160
+                                                         ],
+                                            "id":  "set-prompt"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "assignments":  {
+                                                                                   "assignments":  [
+                                                                                                       {
+                                                                                                           "id":  "video_url",
+                                                                                                           "name":  "video_url",
+                                                                                                           "value":  "https://drive.google.com/uc?export=download\u0026id=1NLHSXHw48kdbghusj_FoQgm0Prli5B8b",
+                                                                                                           "type":  "string"
+                                                                                                       },
+                                                                                                       {
+                                                                                                           "id":  "audio_url",
+                                                                                                           "name":  "audio_url",
+                                                                                                           "value":  "=https://drive.google.com/uc?export=download\u0026id={{ $(\u0027Upload Audio to Drive\u0027).first().json.id }}",
+                                                                                                           "type":  "string"
+                                                                                                       },
+                                                                                                       {
+                                                                                                           "id":  "prompt",
+                                                                                                           "name":  "prompt",
+                                                                                                           "value":  "A female news anchor looking at the camera, professional studio lighting",
+                                                                                                           "type":  "string"
+                                                                                                       }
+                                                                                                   ]
+                                                                               },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Set API Data",
+                                            "type":  "n8n-nodes-base.set",
+                                            "typeVersion":  3.4,
+                                            "position":  [
+                                                             -800,
+                                                             80
+                                                         ],
+                                            "id":  "set-api-data"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "url":  "https://queue.fal.run/fal-ai/infinitalk/video-to-video",
+                                                               "method":  "POST",
+                                                               "sendBody":  true,
+                                                               "sendHeaders":  true,
+                                                               "specifyBody":  "json",
+                                                               "authentication":  "genericCredentialType",
+                                                               "genericAuthType":  "httpHeaderAuth",
+                                                               "jsonBody":  "={\n  \"video_url\": \"{{ $json.video_url }}\",\n  \"audio_url\": \"{{ $json.audio_url }}\",\n  \"prompt\": \"{{ $json.prompt }}\",\n  \"num_frames\": 145,\n  \"resolution\": \"480p\",\n  \"seed\": 42,\n  \"acceleration\": \"regular\"\n}",
+                                                               "headerParameters":  {
+                                                                                        "parameters":  [
+                                                                                                           {
+                                                                                                               "name":  "Content-Type",
+                                                                                                               "value":  "application/json"
+                                                                                                           }
+                                                                                                       ]
+                                                                                    },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Generate Video (Fal.ai)",
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  4.2,
+                                            "position":  [
+                                                             -688,
+                                                             80
+                                                         ],
+                                            "id":  "fal-ai-gen",
+                                            "credentials":  {
+                                                                "httpHeaderAuth":  {
+                                                                                       "id":  "nD0D9rzgjvHIfKIu",
+                                                                                       "name":  "Header Auth account 4"
+                                                                                   }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "amount":  60,
+                                                               "unit":  "seconds"
+                                                           },
+                                            "name":  "Wait 60s",
+                                            "type":  "n8n-nodes-base.wait",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             -496,
+                                                             80
+                                                         ],
+                                            "id":  "wait-60s",
+                                            "webhookId":  "ff8b51a5-47da-43eb-8839-f61067005561"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "url":  "=https://queue.fal.run/fal-ai/infinitalk/requests/{{ $json.request_id }}/status",
+                                                               "authentication":  "genericCredentialType",
+                                                               "genericAuthType":  "httpHeaderAuth",
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Check Status",
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  4.2,
+                                            "position":  [
+                                                             -496,
+                                                             80
+                                                         ],
+                                            "id":  "7570b407-3f93-44f8-b885-4ed929ff5dff",
+                                            "credentials":  {
+                                                                "httpHeaderAuth":  {
+                                                                                       "id":  "nD0D9rzgjvHIfKIu",
+                                                                                       "name":  "Header Auth account 4"
+                                                                                   }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "conditions":  {
+                                                                                  "string":  [
+                                                                                                 {
+                                                                                                     "value1":  "={{ $json.status }}",
+                                                                                                     "value2":  "COMPLETED"
+                                                                                                 }
+                                                                                             ]
+                                                                              }
+                                                           },
+                                            "name":  "Is Completed?",
+                                            "type":  "n8n-nodes-base.if",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             -288,
+                                                             80
+                                                         ],
+                                            "id":  "a0dba941-8fbd-4f6a-8383-f0ec78c3fe07"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "assignments":  {
+                                                                                   "assignments":  [
+                                                                                                       {
+                                                                                                           "id":  "request_id",
+                                                                                                           "name":  "request_id",
+                                                                                                           "value":  "={{ $json.request_id || $(\u0027Generate Video (Fal.ai)\u0027).first().json.request_id }}",
+                                                                                                           "type":  "string"
+                                                                                                       }
+                                                                                                   ]
+                                                                               },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Set Request ID",
+                                            "type":  "n8n-nodes-base.set",
+                                            "typeVersion":  3.4,
+                                            "position":  [
+                                                             -192,
+                                                             80
+                                                         ],
+                                            "id":  "set-request-id"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "url":  "=https://queue.fal.run/fal-ai/infinitalk/requests/{{ $json.request_id }}",
+                                                               "authentication":  "genericCredentialType",
+                                                               "genericAuthType":  "httpHeaderAuth",
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Get Result URL",
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  4.2,
+                                            "position":  [
+                                                             -96,
+                                                             80
+                                                         ],
+                                            "id":  "8b72c641-5d5b-4954-9ed6-074fc12c14df",
+                                            "credentials":  {
+                                                                "httpHeaderAuth":  {
+                                                                                       "id":  "nD0D9rzgjvHIfKIu",
+                                                                                       "name":  "Header Auth account 4"
+                                                                                   }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "url":  "={{ $json.video.url }}",
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Download Video",
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  4.2,
+                                            "position":  [
+                                                             112,
+                                                             80
+                                                         ],
+                                            "id":  "3d0dc576-a385-4555-abe1-65c3e4bc2c73"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "driveId":  {
+                                                                               "__rl":  true,
+                                                                               "mode":  "list",
+                                                                               "value":  "My Drive"
+                                                                           },
+                                                               "folderId":  {
+                                                                                "__rl":  true,
+                                                                                "mode":  "list",
+                                                                                "value":  "root",
+                                                                                "cachedResultName":  "/ (Root folder)"
+                                                                            },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Save to Preview (Manual)",
+                                            "type":  "n8n-nodes-base.googleDrive",
+                                            "typeVersion":  3,
+                                            "position":  [
+                                                             320,
+                                                             80
+                                                         ],
+                                            "id":  "01fdb785-9dd5-444f-86ce-d2b8fe051541",
+                                            "credentials":  {
+                                                                "googleDriveOAuth2Api":  {
+                                                                                             "id":  "MO6SJL3nGr2tqVps",
+                                                                                             "name":  "Google Drive account 2"
+                                                                                         }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "operation":  "update",
+                                                               "documentId":  {
+                                                                                  "__rl":  true,
+                                                                                  "value":  "1M1rAqnnCbAFXqTJtn_sg_iTI5ovlKb_j6Puz1ASv3bg",
+                                                                                  "mode":  "id"
+                                                                              },
+                                                               "sheetName":  {
+                                                                                 "__rl":  true,
+                                                                                 "value":  "Taulukko1",
+                                                                                 "mode":  "name"
+                                                                             },
+                                                               "columns":  {
+                                                                               "mappingMode":  "defineBelow",
+                                                                               "matchingColumns":  [
+                                                                                                       "id"
+                                                                                                   ],
+                                                                               "value":  {
+                                                                                             "id":  "={{ $(\u0027Get Script Data\u0027).first().json.id }}",
+                                                                                             "status":  "PREVIEW_READY"
+                                                                                         }
+                                                                           },
+                                                               "options":  {
+                                                                               "cellFormat":  "USER_ENTERED"
+                                                                           }
+                                                           },
+                                            "name":  "Update Sheet Status",
+                                            "type":  "n8n-nodes-base.googleSheets",
+                                            "typeVersion":  4.4,
+                                            "position":  [
+                                                             512,
+                                                             80
+                                                         ],
+                                            "id":  "9e727a5b-353e-4ab1-9cf8-59d194dbb54b",
+                                            "credentials":  {
+                                                                "googleSheetsOAuth2Api":  {
+                                                                                              "id":  "QJXwI5hj92mcZ333",
+                                                                                              "name":  "Google Sheets account 3"
+                                                                                          }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "resource":  "audio",
+                                                               "input":  "={{ $json.script }}",
+                                                               "voice":  "nova",
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "type":  "@n8n/n8n-nodes-langchain.openAi",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             -1360,
+                                                             64
+                                                         ],
+                                            "id":  "fc9d0024-69e5-4c31-aaef-d840c9af482d",
+                                            "name":  "Generate audio",
+                                            "credentials":  {
+                                                                "openAiApi":  {
+                                                                                  "id":  "Rgke2MzULurO6oFQ",
+                                                                                  "name":  "OpenAi account 2"
+                                                                              }
+                                                            }
+                                        }
+                                    ]
+                      },
+                      {
+                          "description":  "Manual YouTube publishing after review",
+                          "name":  "WF3_YouTube_Publisher",
+                          "connections":  {
+                                              "Manual Trigger":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Set News ID",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                                              "Set News ID":  {
+                                                                  "main":  [
+                                                                               [
+                                                                                   {
+                                                                                       "node":  "Get Metadata",
+                                                                                       "type":  "main",
+                                                                                       "index":  0
+                                                                                   }
+                                                                               ]
+                                                                           ]
+                                                              },
+                                              "Get Metadata":  {
+                                                                   "main":  [
+                                                                                [
+                                                                                    {
+                                                                                        "node":  "List Preview Folder",
+                                                                                        "type":  "main",
+                                                                                        "index":  0
+                                                                                    }
+                                                                                ]
+                                                                            ]
+                                                               },
+                                              "List Preview Folder":  {
+                                                                          "main":  [
+                                                                                       [
+                                                                                           {
+                                                                                               "node":  "Filter by News ID",
+                                                                                               "type":  "main",
+                                                                                               "index":  0
+                                                                                           }
+                                                                                       ]
+                                                                                   ]
+                                                                      },
+                                              "Filter by News ID":  {
+                                                                        "main":  [
+                                                                                     [
+                                                                                         {
+                                                                                             "node":  "Download Video",
+                                                                                             "type":  "main",
+                                                                                             "index":  0
+                                                                                         }
+                                                                                     ],
+                                                                                     [
+
+                                                                                     ]
+                                                                                 ]
+                                                                    },
+                                              "Download Video":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Upload to YouTube",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                                              "Upload to YouTube":  {
+                                                                        "main":  [
+                                                                                     [
+                                                                                         {
+                                                                                             "node":  "Update Sheet Status",
+                                                                                             "type":  "main",
+                                                                                             "index":  0
+                                                                                         }
+                                                                                     ]
+                                                                                 ]
+                                                                    }
+                                          },
+                          "nodes":  [
+                                        {
+                                            "parameters":  {
+
+                                                           },
+                                            "name":  "Manual Trigger",
+                                            "type":  "n8n-nodes-base.manualTrigger",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             250,
+                                                             300
+                                                         ],
+                                            "id":  "manual-trigger"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "assignments":  {
+                                                                                   "assignments":  [
+                                                                                                       {
+                                                                                                           "id":  "news_id",
+                                                                                                           "name":  "news_id",
+                                                                                                           "value":  "t2tj9j",
+                                                                                                           "type":  "string"
+                                                                                                       }
+                                                                                                   ]
+                                                                               },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Set News ID",
+                                            "type":  "n8n-nodes-base.set",
+                                            "typeVersion":  3.4,
+                                            "position":  [
+                                                             450,
+                                                             300
+                                                         ],
+                                            "id":  "set-news-id"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "documentId":  {
+                                                                                  "__rl":  true,
+                                                                                  "value":  "1M1rAqnnCbAFXqTJtn_sg_iTI5ovlKb_j6Puz1ASv3bg",
+                                                                                  "mode":  "id"
+                                                                              },
+                                                               "sheetName":  {
+                                                                                 "__rl":  true,
+                                                                                 "value":  "Taulukko1",
+                                                                                 "mode":  "name"
+                                                                             },
+                                                               "filtersUI":  {
+                                                                                 "values":  [
+                                                                                                {
+                                                                                                    "lookupColumn":  "id",
+                                                                                                    "lookupValue":  "={{ $(\u0027Set News ID\u0027).item.json.news_id }}"
+                                                                                                }
+                                                                                            ]
+                                                                             },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "Get Metadata",
+                                            "type":  "n8n-nodes-base.googleSheets",
+                                            "typeVersion":  4.4,
+                                            "position":  [
+                                                             650,
+                                                             300
+                                                         ],
+                                            "id":  "get-metadata",
+                                            "credentials":  {
+                                                                "googleSheetsOAuth2Api":  {
+                                                                                              "id":  "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+                                                                                              "name":  "Google Sheets account"
+                                                                                          }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "folderId":  {
+                                                                                "__rl":  true,
+                                                                                "value":  "1mKzfiq5FQRcqaO_e9HZ5lgUJiyv2EQr1",
+                                                                                "mode":  "id"
+                                                                            },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "name":  "List Preview Folder",
+                                            "type":  "n8n-nodes-base.googleDrive",
+                                            "typeVersion":  3,
+                                            "position":  [
+                                                             850,
+                                                             300
+                                                         ],
+                                            "id":  "list-preview-folder",
+                                            "credentials":  {
+                                                                "googleDriveOAuth2Api":  {
+                                                                                             "id":  "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+                                                                                             "name":  "Google Drive account"
+                                                                                         }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "conditions":  {
+                                                                                  "string":  [
+                                                                                                 {
+                                                                                                     "value1":  "={{ $json.name }}",
+                                                                                                     "operation":  "contains",
+                                                                                                     "value2":  "={{ $(\u0027Set News ID\u0027).item.json.news_id }}"
+                                                                                                 }
+                                                                                             ]
+                                                                              }
+                                                           },
+                                            "name":  "Filter by News ID",
+                                            "type":  "n8n-nodes-base.if",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             1050,
+                                                             300
+                                                         ],
+                                            "id":  "filter-by-id"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "url":  "=https://www.googleapis.com/drive/v3/files/{{ $json.id }}?alt=media",
+                                                               "authentication":  "genericCredentialType",
+                                                               "genericAuthType":  "oAuth2Api",
+                                                               "options":  {
+                                                                               "responseFormat":  "file"
+                                                                           }
+                                                           },
+                                            "name":  "Download Video",
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  4.2,
+                                            "position":  [
+                                                             1250,
+                                                             300
+                                                         ],
+                                            "id":  "download-video",
+                                            "credentials":  {
+                                                                "oAuth2Api":  {
+                                                                                  "id":  "YOUR_GOOGLE_OAUTH2_CREDENTIAL_ID",
+                                                                                  "name":  "Google OAuth2"
+                                                                              }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "resource":  "video",
+                                                               "operation":  "upload",
+                                                               "title":  "={{ $(\u0027Get Metadata\u0027).item.json.title }}",
+                                                               "categoryId":  "25",
+                                                               "description":  "=LÃ¤hde: {{ $(\u0027Get Metadata\u0027).item.json.source_title }}\\n{{ $(\u0027Get Metadata\u0027).item.json.source_url }}",
+                                                               "tags":  "uutiset,Suomi,news",
+                                                               "privacyStatus":  "public",
+                                                               "binaryData":  true
+                                                           },
+                                            "name":  "Upload to YouTube",
+                                            "type":  "n8n-nodes-base.youTube",
+                                            "typeVersion":  1,
+                                            "position":  [
+                                                             1450,
+                                                             300
+                                                         ],
+                                            "id":  "upload-youtube",
+                                            "credentials":  {
+                                                                "youTubeOAuth2Api":  {
+                                                                                         "id":  "YOUR_YOUTUBE_CREDENTIAL_ID",
+                                                                                         "name":  "YouTube account"
+                                                                                     }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "operation":  "update",
+                                                               "documentId":  {
+                                                                                  "__rl":  true,
+                                                                                  "value":  "1M1rAqnnCbAFXqTJtn_sg_iTI5ovlKb_j6Puz1ASv3bg",
+                                                                                  "mode":  "id"
+                                                                              },
+                                                               "sheetName":  {
+                                                                                 "__rl":  true,
+                                                                                 "value":  "Taulukko1",
+                                                                                 "mode":  "name"
+                                                                             },
+                                                               "columns":  {
+                                                                               "mappingMode":  "defineBelow",
+                                                                               "matchingColumns":  [
+                                                                                                       "id"
+                                                                                                   ],
+                                                                               "value":  {
+                                                                                             "id":  "={{ $(\u0027Get Metadata\u0027).first().json.id }}",
+                                                                                             "status":  "PUBLISHED",
+                                                                                             "youtube_url":  "=https://youtube.com/watch?v={{ $json.id }}"
+                                                                                         }
+                                                                           },
+                                                               "options":  {
+                                                                               "cellFormat":  "USER_ENTERED"
+                                                                           }
+                                                           },
+                                            "name":  "Update Sheet Status",
+                                            "type":  "n8n-nodes-base.googleSheets",
+                                            "typeVersion":  4.4,
+                                            "position":  [
+                                                             1650,
+                                                             300
+                                                         ],
+                                            "id":  "update-status",
+                                            "credentials":  {
+                                                                "googleSheetsOAuth2Api":  {
+                                                                                              "id":  "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+                                                                                              "name":  "Google Sheets account"
+                                                                                          }
+                                                            }
+                                        }
+                                    ]
+                      }
+                  ]
+}

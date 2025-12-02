@@ -1,0 +1,171 @@
+{
+    "name": "Project_Saaga_Complete_Demo",
+    "version": "1.0",
+    "description": "Complete workflow package for Project Saaga AI video automation",
+    "created": "2025-12-02",
+    "WARNING": "⚠️ ALL API KEYS AND CREDENTIALS HAVE BEEN REMOVED FOR SECURITY. Replace all placeholder values (YOUR_*_ID, YOUR_*_KEY) with actual credentials before importing to n8n.",
+    "overview": {
+        "purpose": "Automated AI news video production pipeline",
+        "language": "Finnish",
+        "workflows": 3,
+        "human_in_the_loop": true
+    },
+    "workflow_sequence": [
+        "1. WF1_Script_Factory - Generate news scripts (automated/scheduled)",
+        "2. WF2_Video_Generator - Create AI videos with lip-sync (manual)",
+        "3. Manual Review - Human operator reviews preview video",
+        "4. WF3_YouTube_Publisher - Publish to YouTube (manual)"
+    ],
+    "required_credentials": {
+        "openai": {
+            "type": "API Key",
+            "purpose": "GPT-4 script generation + TTS audio",
+            "placeholder": "YOUR_OPENAI_API_KEY"
+        },
+        "fal_ai": {
+            "type": "Header Auth",
+            "format": "Key YOUR_FAL_AI_KEY",
+            "purpose": "Infinitalk video-to-video lip-sync",
+            "placeholder": "YOUR_FAL_AI_KEY"
+        },
+        "google_sheets": {
+            "type": "OAuth2",
+            "purpose": "Data storage and tracking",
+            "placeholder": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID"
+        },
+        "google_drive": {
+            "type": "OAuth2",
+            "purpose": "Video and audio file storage",
+            "placeholder": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID"
+        },
+        "youtube": {
+            "type": "OAuth2",
+            "purpose": "Video publishing",
+            "note": "Must authenticate with brand account",
+            "placeholder": "YOUR_YOUTUBE_CREDENTIAL_ID"
+        }
+    },
+    "google_resources": {
+        "sheets": {
+            "document_id": "1M1rAqnnCbAFXqTJtn_sg_iTI5ovlKb_j6Puz1ASv3bg",
+            "sheet_name": "Taulukko1",
+            "columns": [
+                "id",
+                "title",
+                "script",
+                "image_prompt",
+                "source_title",
+                "source_url",
+                "status",
+                "youtube_url"
+            ]
+        },
+        "drive_folders": {
+            "temp_audio": "1ZZa6zVWk3AyF3zv68LBrFzI_WmdySXq0",
+            "saaga_previews": "1mKzfiq5FQRcqaO_e9HZ5lgUJiyv2EQr1"
+        },
+        "base_video_file": "1NLHSXHw48kdbghusj_FoQgm0Prli5B8b"
+    },
+    "workflows": [
+        {
+            "id": "wf1",
+            "name": "WF1_Script_Factory",
+            "description": "Automated news script generation using OpenAI GPT-4",
+            "trigger": "Schedule (daily/weekly) or Manual",
+            "output_status": "SCRIPT_READY",
+            "file": "WF1_Saaga_Script_Factory.json",
+            "nodes_count": "Refer to individual file",
+            "note": "Creates news scripts and saves to Google Sheets"
+        },
+        {
+            "id": "wf2",
+            "name": "WF2_Video_Generator",
+            "description": "Manual video generation with AI lip-sync and voiceover",
+            "trigger": "Manual - operator inputs News ID",
+            "output_status": "PREVIEW_READY",
+            "file": "WF2_Saaga_Video_Gen_Fixed.json",
+            "nodes_count": "Refer to individual file",
+            "critical_config": {
+                "fal_ai_request": {
+                    "sendBody": true,
+                    "sendHeaders": true,
+                    "specifyBody": "json",
+                    "headerParameters": "Content-Type: application/json"
+                }
+            },
+            "note": "Generates video and saves to preview folder for manual review"
+        },
+        {
+            "id": "wf3",
+            "name": "WF3_YouTube_Publisher",
+            "description": "Manual YouTube publishing after human approval",
+            "trigger": "Manual - after reviewing preview",
+            "output_status": "PUBLISHED",
+            "file": "WF3_Saaga_Publish_Bot.json",
+            "nodes_count": "Refer to individual file",
+            "note": "Uploads video to YouTube with metadata and updates status"
+        }
+    ],
+    "setup_instructions": [
+        "1. Import each workflow file separately to n8n",
+        "2. Configure all credentials (OpenAI, Fal.ai, Google OAuth2, YouTube OAuth2)",
+        "3. Update Google Sheets document ID and folder IDs if using different resources",
+        "4. Test WF1 first to generate a script",
+        "5. Test WF2 with a News ID from WF1 output",
+        "6. Review the generated preview video",
+        "7. Test WF3 to publish to YouTube",
+        "8. Activate WF1 schedule for automated script generation"
+    ],
+    "security_notes": [
+        "⚠️ This demo file does NOT contain any API keys or secrets",
+        "⚠️ All credential IDs have been replaced with YOUR_*_ID placeholders",
+        "⚠️ Do NOT commit actual credentials to version control",
+        "⚠️ Store sensitive data in n8n's credential system",
+        "⚠️ YouTube OAuth2 must be authenticated with correct brand account"
+    ],
+    "cost_estimates": {
+        "per_video": {
+            "openai_tts": "$0.02",
+            "fal_ai_infinitalk": "$0.05-0.10",
+            "google_services": "Free (within quota)",
+            "youtube": "Free",
+            "total_current": "$0.07-0.12"
+        },
+        "with_elevenlabs": {
+            "elevenlabs_tts": "$0.40",
+            "total": "$0.45-0.50"
+        },
+        "monthly_30_videos": {
+            "current": "$2-3",
+            "with_elevenlabs": "$12-15"
+        }
+    },
+    "known_issues": [
+        "YouTube metadata (title, description, tags) not appearing - needs debugging",
+        "WF2 filename generation produces random names instead of {date}_{id}.mp4 format",
+        "Short videos (~6 seconds) - need dynamic num_frames calculation"
+    ],
+    "roadmap": [
+        "Fix YouTube metadata upload",
+        "Replace OpenAI TTS with ElevenLabs custom voice",
+        "Implement API cost tracking",
+        "Auto-generate thumbnails",
+        "Dynamic video length based on audio duration",
+        "Improve video generation prompts",
+        "Add dynamic tags extraction"
+    ],
+    "support": {
+        "n8n_docs": "https://docs.n8n.io",
+        "fal_ai": "https://fal.ai/models/infinitalk",
+        "openai_tts": "https://platform.openai.com/docs/guides/text-to-speech",
+        "youtube_api": "https://developers.google.com/youtube/v3"
+    },
+    "individual_workflow_files": {
+        "note": "Import these files separately to n8n, not this demo file",
+        "files": [
+            "WF1_Saaga_Script_Factory.json",
+            "WF2_Saaga_Video_Gen_Fixed.json",
+            "WF3_Saaga_Publish_Bot.json"
+        ]
+    }
+}
